@@ -6,7 +6,7 @@
  * @help 
  * ----------------------------------------------------------------------------
  *   Pretty Sleek Gauges Yanfly Absorption Barrier Patch v1.0a
- *     For Pretty Sleek Gauges versions v1.03 and up
+ *     For Pretty Sleek Gauges versions v1.03a and up
  * ----------------------------------------------------------------------------
  *   Free to use in any project with credit to:
  *     superMasterSword
@@ -14,7 +14,6 @@
  *   !!! NOTICE: Overwrites the following: !!!
  *     Special_Gauge.prototype.drawGauge
  *     Special_Gauge.prototype.drawText
- *     Window_EnemyHPBars.prototype.drawActorHp
  *
  *   I will do my best to keep this up-to-date but let me know if you run into
  *   any issues!
@@ -56,7 +55,41 @@ var shouldDrawEnemyTP = (parameters['Show Enemy TP'] || "true") === "true";
 Window_Base.prototype.drawActorHp = function(actor, x, y, width) {
 	this.drawAnimatedGauge(x, y, (width || 186), actor, this.hpGaugeColor1(), this.hpGaugeColor2(), "hp");
 	this._gauges[this.makeGaugeKey(x, y)].setExtra(TextManager.hpA, actor.hp, actor.mhp);
-	this._gauges[this.makeGaugeKey(x, y)].update();
+}
+
+Window_EnemyHPBars.prototype.drawActorHp = function(actor, x, y, width) {
+	this.drawAnimatedGauge(x, y, width, actor, this.hpGaugeColor1(), this.hpGaugeColor2(), "hp");
+	this._gauges[this.makeGaugeKey(x, y)].setExtra(TextManager.hpA, actor.hp, actor.mhp, textYOffset);
+}
+
+Window_EnemyHPBars.prototype.drawEnemyGauges = function(actor, x, y, width) {
+	if (actor.enemy().meta.HideEnemyHPBar) return;
+	if (this._gauges && this._gauges[this.makeGaugeKey(x, y)] && this._gauges[this.makeGaugeKey(x, y)]._curVal === 0) {
+		this.clearGauges(actor, x, y, width);
+		return;
+	}
+
+	width = width || 186;
+	barTypeLeft = actor.enemy().meta.BarTypeLeft || hpBarTypeLeft || barTypeLeft;
+	barTypeRight = actor.enemy().meta.BarTypeRight || hpBarTypeRight || barTypeRight;
+
+	this.drawAnimatedGauge(x, y, width, actor, this.hpGaugeColor1(), this.hpGaugeColor2(), "hp");
+	this._gauges[this.makeGaugeKey(x, y)].setExtra(TextManager.hpA, actor.hp, actor.mhp, textYOffset);
+	this._gauges[this.makeGaugeKey(x, y)].setTextVisibility(showEHPHP, showEHPText);
+
+	barTypeLeft = saveBarTypeLeft;
+	barTypeRight = saveBarTypeRight;
+
+	if (shouldDrawEnemyMP && (drawEnemyMPWhenNoMP || actor.mmp > 0) && !actor.enemy().meta.HideEnemyMPBar) {
+		this.drawTinyGauge(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset, width + tinyWidthAdjust, actor.mpRate(), this.mpGaugeColor1(), this.mpGaugeColor2(), "mp");
+		this._gauges[this.makeTGaugeKey(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset)].setExtra(TextManager.mpA, actor.mp, actor.mmp);
+		y += defaultTinyHeight + 2;
+	}
+
+	if ((shouldDrawEnemyTP && !actor.enemy().meta.HideEnemyTPBar) || (!shouldDrawEnemyTP && actor.enemy().meta.ShowEnemyTPBar)) {
+		this.drawTinyGauge(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset, width + tinyWidthAdjust, actor.tpRate(), this.tpGaugeColor1(), this.tpGaugeColor2(), "tp");
+		this._gauges[this.makeTGaugeKey(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset)].setExtra(TextManager.tpA, actor.tp, actor.maxTp());
+	}
 }
 
 var alias_special_gauge_initialize = Special_Gauge.prototype.initialize;
@@ -89,7 +122,6 @@ Special_Gauge.prototype.update = function() {
 		
 		if (!animatedNumbers || this.shouldAnimate()) this._curAbsp = this._maxAbsp;
 		if (!animatedGauges || this.shouldAnimate()) this._curAbspRate = this._maxAbspRate;
-		/* changed to reference this.shouldAnimate() like the main plugin for consistency */
 	}
 	
 	this.refresh();
@@ -209,6 +241,7 @@ Special_Gauge.prototype.drawText = function() {
 			var x2 = x1 - slshWidth;
 			var x3 = x2 - valWidth;
 			if (this._type === "hp" && this._curAbsp > 0) {
+				console.log("yes")
 				var abspWidth = this._window.textWidth("+" + Math.round(this._curAbsp));
 				if (this._maxVal && x3 - abspWidth >= this._x + lblWidth) {
 					this._window.drawText(Math.round(this._curVal), x3 - abspWidth, this._y + this._yOffset,
@@ -216,9 +249,7 @@ Special_Gauge.prototype.drawText = function() {
 					var color = "#";
 					for (var i = 0; i < 3; i++) color += Yanfly.Param.ABRPop[i].toString(16).padZero(2);
 					this._window.changeTextColor(color);
-					this._window.drawText("+" + Math.round(this._curAbsp), x2 - abspWidth, this._y + this._yOffset,
-						abspWidth, "right");
-					/* rounded this._curAbsp here too */
+					this._window.drawText("+" + Math.round(this._curAbsp), x2 - abspWidth, this._y + this._yOffset, abspWidth, "right");
 					this._window.changeTextColor(this._window.normalColor());
 					this._window.drawText("/", x2, this._y + this._yOffset, slshWidth, "right");
 					this._window.drawText(this._maxVal, x1, this._y + this._yOffset, valWidth, "right");
@@ -231,50 +262,25 @@ Special_Gauge.prototype.drawText = function() {
 					this._window.changeTextColor(color);
 					this._window.drawText("+" + Math.round(this._curAbsp), xr - abspWidth, this._y + this._yOffset,
 						abspWidth, "right");
-					/* rounded this._curAbsp here too */
 					return;
+				} else if (!this._maxVal || x3 < this._x + lblWidth) {
+					var color = "#";
+					for (var i = 0; i < 3; i++) color += Yanfly.Param.ABRPop[i].toString(16).padZero(2);
+					this._window.changeTextColor(color);
+					this._window.drawText(Math.round(this._curVal + this._curAbsp), x1, this._y + this._yOffset, valWidth, "right");
 				}
-			}
-			if (!this._maxVal || x3 < this._x + lblWidth) {
-				this._window.drawText(Math.round(this._curVal), x1, this._y + this._yOffset, valWidth, "right");
 			} else {
-				this._window.drawText(Math.round(this._curVal), x3, this._y + this._yOffset, valWidth, "right");
-				this._window.changeTextColor(this._window.normalColor());
-				this._window.drawText("/", x2, this._y + this._yOffset, slshWidth, "right");
-				this._window.drawText(this._maxVal, x1, this._y + this._yOffset, valWidth, "right");
+				if (!this._maxVal || x3 < this._x + lblWidth) {
+					this._window.drawText(Math.round(this._curVal), x1, this._y + this._yOffset, valWidth, "right");
+				} else {
+					this._window.drawText(Math.round(this._curVal), x3, this._y + this._yOffset, valWidth, "right");
+					this._window.changeTextColor(this._window.normalColor());
+					this._window.drawText("/", x2, this._y + this._yOffset, slshWidth, "right");
+					this._window.drawText(this._maxVal, x1, this._y + this._yOffset, valWidth, "right");
+				}
 			}
 		}
 	} 
-}
-
-Window_EnemyHPBars.prototype.drawActorHp = function(actor, x, y, width) {
-	if (actor.enemy().meta.HideEnemyHPBar) return;
-	if (this._gauges && this._gauges[this.makeGaugeKey(x, y)] && this._gauges[this.makeGaugeKey(x, y)]._curVal === 0) {
-		this.clearGauges(actor, x, y, width);
-		return;
-	}
-
-	width = width || 186;
-	barTypeLeft = actor.enemy().meta.BarTypeLeft || hpBarTypeLeft || barTypeLeft;
-	barTypeRight = actor.enemy().meta.BarTypeRight || hpBarTypeRight || barTypeRight;
-
-	this.drawAnimatedGauge(x, y, width, actor, this.hpGaugeColor1(), this.hpGaugeColor2(), "hp");
-	this._gauges[this.makeGaugeKey(x, y)].setExtra(TextManager.hpA, actor.hp, actor.mhp, textYOffset);
-	this._gauges[this.makeGaugeKey(x, y)].setTextVisibility(showEHPHP, showEHPText);
-
-	barTypeLeft = saveBarTypeLeft;
-	barTypeRight = saveBarTypeRight;
-
-	if (shouldDrawEnemyMP && (drawEnemyMPWhenNoMP || actor.mmp > 0) && !actor.enemy().meta.HideEnemyMPBar) {
-		this.drawTinyGauge(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset, width + tinyWidthAdjust, actor.mpRate(), this.mpGaugeColor1(), this.mpGaugeColor2(), "mp");
-		this._gauges[this.makeTGaugeKey(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset)].setExtra(TextManager.mpA, actor.mp, actor.mmp);
-		y += defaultTinyHeight + 2;
-	}
-
-	if ((shouldDrawEnemyTP && !actor.enemy().meta.HideEnemyTPBar) || (!shouldDrawEnemyTP && actor.enemy().meta.ShowEnemyTPBar)) {
-		this.drawTinyGauge(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset, width + tinyWidthAdjust, actor.tpRate(), this.tpGaugeColor1(), this.tpGaugeColor2(), "tp");
-		this._gauges[this.makeTGaugeKey(x + tinyGaugeXOffset, y + 1 + tinyGaugeYOffset)].setExtra(TextManager.tpA, actor.tp, actor.maxTp());
-	}
 }
 
 })();

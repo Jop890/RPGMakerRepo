@@ -53,7 +53,6 @@ var tinyGaugeXOffset = parseInt(parameters['Tiny Gauge X Offset']) || 0;
 var tinyGaugeYOffset = parseInt(parameters['Tiny Gauge Y Offset']) || 0;
 var shouldDrawEnemyTP = (parameters['Show Enemy TP'] || "true") === "true";
 
-var alias_window_base_drawactorhp_psg = Window_Base.prototype.drawActorHp;
 Window_Base.prototype.drawActorHp = function(actor, x, y, width) {
 	this.drawAnimatedGauge(x, y, (width || 186), actor, this.hpGaugeColor1(), this.hpGaugeColor2(), "hp");
 	this._gauges[this.makeGaugeKey(x, y)].setExtra(TextManager.hpA, actor.hp, actor.mhp);
@@ -64,7 +63,6 @@ var alias_special_gauge_initialize = Special_Gauge.prototype.initialize;
 Special_Gauge.prototype.initialize = function(x, y, w, r, c1, c2, basewindow, h, t) {
 	alias_special_gauge_initialize.call(this, x, y, w, r, c1, c2, basewindow, h, t);
 	if (this._type === "hp" && typeof r !== "number") this.setRate(r);
-	this.refresh();
 }
 
 var alias_special_gauge_doneUpdating = Special_Gauge.prototype.doneUpdating;

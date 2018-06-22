@@ -241,7 +241,6 @@ Special_Gauge.prototype.drawText = function() {
 			var x2 = x1 - slshWidth;
 			var x3 = x2 - valWidth;
 			if (this._type === "hp" && this._curAbsp > 0) {
-				console.log("yes")
 				var abspWidth = this._window.textWidth("+" + Math.round(this._curAbsp));
 				if (this._maxVal && x3 - abspWidth >= this._x + lblWidth) {
 					this._window.drawText(Math.round(this._curVal), x3 - abspWidth, this._y + this._yOffset,

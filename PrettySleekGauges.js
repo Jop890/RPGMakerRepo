@@ -641,7 +641,7 @@ Special_Gauge.prototype.drawText = function() {
 				}
 			}
 
-			if (this._width < 186) {
+			if (!this._maxVal || this._width < 186) {
 				this._window.drawText(Math.round(this._curVal), x, this._y + this._yOffset, width, "right");
 			} else {
 				this._window.drawText(Math.round(this._curVal), x, this._y + this._yOffset, width - this._window.textWidth("/" + this._maxVal), "right");

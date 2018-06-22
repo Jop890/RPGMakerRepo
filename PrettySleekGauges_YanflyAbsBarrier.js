@@ -30,6 +30,7 @@ var defaultTinyHeight = Number(parameters['Tiny Gauge Height'] || 2);
 var animatedNumbers = (parameters['Animated Numbers'] || "true") === "true";
 var animatedGauges = (parameters['Animated Gauges'] || "true") === "true";
 var gaugeOutColor = parameters['Outline Color'] || "#FFFFFF";
+var textRightBuffer = Number(parameters['Text Right Buffer'] || 2);
 
 var barTypeLeft = String(parameters['Bar Shape']).substring(0,1);
 var barTypeRight = String(parameters['Bar Shape']).substring(1,2);
@@ -202,12 +203,20 @@ Special_Gauge.prototype.drawGauge = function() {
 	}
 
 	this._window.contents.drawTrap(this._x, gy, this._width - 2, this._height, this._window.gaugeBackColor(), true);
+			
+	//============================================================================================
+	// ** BEGIN CHANGES **
+	//
 	if (this._type === "hp" && this._curAbsp > 0) {
 		var fill_wa = Math.round((this._width - 2) * this._curAbspRate);
 		var c1 = this._window.barrierColor1();
 		var c2 = this._window.barrierColor2();
 		this._window.contents.drawTrap(this._x, gy, fill_wa, this._height, c1, c2, "atop");
 	}
+	//
+	// ** END CHANGES **
+	//============================================================================================
+	
 	this._window.contents.drawTrap(this._x, gy, fill_w, this._height, this._color[0], this._color[1], "atop");
 	this._window.contents.drawTrap(this._x, gy, this._width - 2, this._height, gaugeOutColor);
 
@@ -217,14 +226,18 @@ Special_Gauge.prototype.drawGauge = function() {
 
 Special_Gauge.prototype.drawText = function() {
 	if (this._vocab) {
+		var width = this._width;
+		var x = this._x;
 		this._window.fontSize = this.fontSize();
-		var lblWidth = this._showEHPHP ? this._window.textWidth(this._text) : 0;
 		if (this._showEHPHP) {
 			this._window.changeTextColor(this._window.systemColor());
-			this._window.drawText(this._text, this._x + 1, this._y + this._yOffset, lblWidth);
+			this._window.drawText(this._text, this._x + 1, this._y + this._yOffset);
+			width -= this._window.textWidth(this._text);
+			x += this._window.textWidth(this._text);
 		}
 
 		if (this._showEHPText) {
+			width -= textRightBuffer;
 			this._window.changeTextColor(this._window.normalColor());
 			if (this.critText()) {
 				if (this._curVal < this._maxVal / 10) {
@@ -234,48 +247,49 @@ Special_Gauge.prototype.drawText = function() {
 				}
 			}
 			
-			var valWidth = this._window.textWidth(String(Math.round(this._maxVal || this._curVal)));
-			var slshWidth = this._window.textWidth("/");
-			var xr = this._x + this._width;
-			var x1 = xr - valWidth;
-			var x2 = x1 - slshWidth;
-			var x3 = x2 - valWidth;
+			//============================================================================================
+			// ** BEGIN CHANGES **
+			//
+
 			if (this._type === "hp" && this._curAbsp > 0) {
 				var abspWidth = this._window.textWidth("+" + Math.round(this._curAbsp));
-				if (this._maxVal && x3 - abspWidth >= this._x + lblWidth) {
-					this._window.drawText(Math.round(this._curVal), x3 - abspWidth, this._y + this._yOffset,
-						valWidth, "right");
+
+				if (this._maxVal && abspWidth + this._window.textWidth((this._setVal || this._curVal) + "/" + this._maxVal) <= width) {
+					this._window.drawText(Math.round(this._curVal), x, this._y + this._yOffset, width - abspWidth - this._window.textWidth("/" + this._maxVal), "right");
 					var color = "#";
 					for (var i = 0; i < 3; i++) color += Yanfly.Param.ABRPop[i].toString(16).padZero(2);
 					this._window.changeTextColor(color);
-					this._window.drawText("+" + Math.round(this._curAbsp), x2 - abspWidth, this._y + this._yOffset, abspWidth, "right");
+					this._window.drawText("+" + Math.round(this._curAbsp), x, this._y + this._yOffset, width - this._window.textWidth("/" + this._maxVal), "right");
 					this._window.changeTextColor(this._window.normalColor());
-					this._window.drawText("/", x2, this._y + this._yOffset, slshWidth, "right");
-					this._window.drawText(this._maxVal, x1, this._y + this._yOffset, valWidth, "right");
-					return;
-				} else if (x1 - abspWidth >= this._x + lblWidth) {
-					this._window.drawText(Math.round(this._curVal), x1 - abspWidth, this._y + this._yOffset,
-						valWidth, "right");
+					this._window.drawText("/", x, this._y + this._yOffset, width - this._window.textWidth(this._maxVal), "right");
+					this._window.drawText(this._maxVal, x, this._y + this._yOffset, width, "right");
+
+				} else if (this._window.textWidth(this._setVal || this._curVal) + abspWidth <= width) {
+					this._window.drawText(Math.round(this._curVal), x, this._y + this._yOffset, width - abspWidth, "right");
 					var color = "#";
 					for (var i = 0; i < 3; i++) color += Yanfly.Param.ABRPop[i].toString(16).padZero(2);
 					this._window.changeTextColor(color);
-					this._window.drawText("+" + Math.round(this._curAbsp), xr - abspWidth, this._y + this._yOffset,
-						abspWidth, "right");
-					return;
-				} else if (!this._maxVal || x3 < this._x + lblWidth) {
-					var color = "#";
-					for (var i = 0; i < 3; i++) color += Yanfly.Param.ABRPop[i].toString(16).padZero(2);
-					this._window.changeTextColor(color);
-					this._window.drawText(Math.round(this._curVal + this._curAbsp), x1, this._y + this._yOffset, valWidth, "right");
-				}
-			} else {
-				if (!this._maxVal || x3 < this._x + lblWidth) {
-					this._window.drawText(Math.round(this._curVal), x1, this._y + this._yOffset, valWidth, "right");
+					this._window.drawText("+" + Math.round(this._curAbsp), x, this._y + this._yOffset, width, "right");
+
 				} else {
-					this._window.drawText(Math.round(this._curVal), x3, this._y + this._yOffset, valWidth, "right");
+					var color = "#";
+					for (var i = 0; i < 3; i++) color += Yanfly.Param.ABRPop[i].toString(16).padZero(2);
+					this._window.changeTextColor(color);
+					this._window.drawText(Math.round(this._curVal + this._curAbsp), x, this._y + this._yOffset, width, "right");
+				}
+
+			} else {
+
+			//
+			// ** END CHANGES **
+			//============================================================================================
+				if (!this._maxVal || this._width < 186) {
+					this._window.drawText(Math.round(this._curVal), x, this._y + this._yOffset, width, "right");
+				} else {
+					this._window.drawText(Math.round(this._curVal), x, this._y + this._yOffset, width - this._window.textWidth("/" + this._maxVal), "right");
 					this._window.changeTextColor(this._window.normalColor());
-					this._window.drawText("/", x2, this._y + this._yOffset, slshWidth, "right");
-					this._window.drawText(this._maxVal, x1, this._y + this._yOffset, valWidth, "right");
+					this._window.drawText("/", x, this._y + this._yOffset, width - this._window.textWidth(this._maxVal), "right");
+					this._window.drawText(this._maxVal, x, this._y + this._yOffset, width, "right");
 				}
 			}
 		}

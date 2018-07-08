@@ -5,8 +5,8 @@
  *
  * @help 
  * ----------------------------------------------------------------------------
- *   Pretty Sleek Gauges Yanfly Absorption Barrier Patch v1.0a
- *     For Pretty Sleek Gauges versions v1.03a and up
+ *   Pretty Sleek Gauges Yanfly Absorption Barrier Patch v1.0b
+ *     For Pretty Sleek Gauges versions v1.03b and up
  * ----------------------------------------------------------------------------
  *   Free to use in any project with credit to:
  *     superMasterSword
@@ -198,7 +198,9 @@ Special_Gauge.prototype.drawText = function() {
 	if (this._vocab) {
 		var width = this._width;
 		var x = this._x;
-		this._window.fontSize = this.fontSize();
+		var storeFontSize = this._window.contents.fontSize;
+		this._window.contents.fontSize = this.fontSize();
+
 		if (this._showEHPHP) {
 			this._window.changeTextColor(this._window.systemColor());
 			this._window.drawText(this._text, this._x + 1, this._y + this._yOffset);
@@ -263,6 +265,8 @@ Special_Gauge.prototype.drawText = function() {
 				}
 			}
 		}
+
+		this._window.contents.fontSize = storeFontSize;
 	} 
 }
 

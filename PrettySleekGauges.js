@@ -274,7 +274,7 @@ Imported.PrettySleekGauges = true;
  * @param
  * @help 
  * ----------------------------------------------------------------------------
- *   Pretty Sleek Gauges v1.03b
+ *   Pretty Sleek Gauges v1.03c
  * ----------------------------------------------------------------------------
  *   Free to use in any project with credit to:
  *     Vlue             (original plugin)
@@ -302,6 +302,10 @@ Imported.PrettySleekGauges = true;
  *    <ShowEnemyTPBar>
  *  for those rare few enemies that DO use TP.
  *
+ * ----------------------------------------------------------------------------
+ *   Other Notes
+ *   - Don't use Show Over for the Show Enemy HP Gauges parameter if you're
+ *     also using Hime's Enemy Reinforcements.
  * ----------------------------------------------------------------------------
  *  Original Plugin By Vlue
  *
@@ -628,6 +632,9 @@ Special_Gauge.prototype.drawGauge = function() {
 }
 
 Special_Gauge.prototype.fontSize = function() {
+	// edit to make different font sizes:
+	// for example: 
+	// if (this._window instanceof Window_BattleStatus) return 20;
 	return gaugeFontSize;
 }
 
@@ -852,7 +859,7 @@ Window_EnemyHPBars.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	var width = EHPbarWidth, x, y;
 	for (var i = 0; i < $gameTroop._enemies.length; i++) {
-		if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
+		if (this._enemySprites[i] === undefined || !this._enemySprites[i]._appeared || !this._enemySprites[i].height || !this._enemySprites[i].width) continue;
 
 		x = $gameTroop._enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarXOffset) || 0);
 		y = $gameTroop._enemies[i].screenY() - this.lineHeight() + EHPYOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarYOffset) || 0);
@@ -890,7 +897,6 @@ Scene_Battle.prototype.createSpriteset = function() {
 	this._enemyHPBarWindow = new Window_EnemyHPBars(this._spriteset._enemySprites);
 	this.addChild(this._enemyHPBarWindow);
 };
-
 } else {
 var alias_Spriteset_Battle_createEnemies = Spriteset_Battle.prototype.createEnemies;
 Spriteset_Battle.prototype.createEnemies = function() {

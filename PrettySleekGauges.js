@@ -792,7 +792,7 @@ Window_EnemyHPBars.prototype.initialize = function(sprites) {
 };
 
 Window_EnemyHPBars.prototype.standardPadding = function() {
-   return 0;
+	return 0;
 };
 
 Window_EnemyHPBars.prototype.clearGauges = function(actor, x, y, width) {

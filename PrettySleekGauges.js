@@ -804,6 +804,7 @@ Window_EnemyHPBars.prototype.clearGauges = function(actor, x, y, width) {
 
 Window_EnemyHPBars.prototype.drawActorHp = function(actor, x, y, width) {
 	this.drawAnimatedGauge(x, y, width, actor.hpRate(), this.hpGaugeColor1(), this.hpGaugeColor2(), "hp");
+	this._gauges[this.makeGaugeKey(x, y)].setTextVisibility(showEHPHP, showEHPText);
 	this._gauges[this.makeGaugeKey(x, y)].setExtra(TextManager.hpA, actor.hp, actor.mhp, textYOffset);
 }
 
@@ -819,7 +820,7 @@ Window_EnemyHPBars.prototype.drawActorTp = function(actor, x, y, width) {
 
 Window_EnemyHPBars.prototype.drawEnemyGauges = function(actor, x, y, width) {
 	if (actor.enemy().meta.HideEnemyHPBar) return;
-	if (this._gauges && this._gauges[this.makeGaugeKey(x, y)] && this._gauges[this.makeGaugeKey(x, y)]._curVal === 0) {
+	if (this._gauges && this._gauges[this.makeGaugeKey(x, y)] && this._gauges[this.makeGaugeKey(x, y)]._curVal === 0 && actor.hp === 0) {
 		this.clearGauges(actor, x, y, width);
 		return;
 	}
@@ -827,7 +828,6 @@ Window_EnemyHPBars.prototype.drawEnemyGauges = function(actor, x, y, width) {
 	barTypeLeft = actor.enemy().meta.BarTypeLeft || hpBarTypeLeft || barTypeLeft;
 	barTypeRight = actor.enemy().meta.BarTypeRight || hpBarTypeRight || barTypeRight;
 	this.drawActorHp(actor, x, y, width);
-	this._gauges[this.makeGaugeKey(x, y)].setTextVisibility(showEHPHP, showEHPText);
 	barTypeLeft = saveBarTypeLeft;
 	barTypeRight = saveBarTypeRight;
 
@@ -858,15 +858,31 @@ Window_EnemyHPBars.prototype.drawTinyGauge = function(x, y, width, rate, c1, c2,
 Window_EnemyHPBars.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	var width = EHPbarWidth, x, y;
-	for (var i = 0; i < $gameTroop._enemies.length; i++) {
-		if (this._enemySprites[i] === undefined || !this._enemySprites[i]._appeared || !this._enemySprites[i].height || !this._enemySprites[i].width) continue;
+    var enemies = $gameTroop.members();
 
-		x = $gameTroop._enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarXOffset) || 0);
-		y = $gameTroop._enemies[i].screenY() - this.lineHeight() + EHPYOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarYOffset) || 0);
+    for (var i = 0; i < enemies.length; i++) {
+    	if (this._enemySprites[i] === undefined) continue;
+        if (enemies[i].isHidden()) continue;
+        if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
+
+        x = enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt(enemies[i].enemy().meta.HPBarXOffset) || 0);
+		y = enemies[i].screenY() - this.lineHeight() + EHPYOffset + (parseInt(enemies[i].enemy().meta.HPBarYOffset) || 0);
 		if (showUpTop) y -= this._enemySprites[i].height * EHPYMultiplier;
+		this.drawEnemyGauges(enemies[i], x, y, width);
 
-		this.drawEnemyGauges($gameTroop._enemies[i], x, y, width);
-	}
+    }
+
+	// for (var i = 0; i < $gameTroop.members().length; i++) {
+	// 	if (this._enemySprites[i] === undefined) continue;
+	// 	if (!this._enemySprites[i]._appeared) continue;
+	// 	if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
+
+	// 	x = $gameTroop._enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarXOffset) || 0);
+	// 	y = $gameTroop._enemies[i].screenY() - this.lineHeight() + EHPYOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarYOffset) || 0);
+	// 	if (showUpTop) y -= this._enemySprites[i].height * EHPYMultiplier;
+
+	// 	this.drawEnemyGauges($gameTroop._enemies[i], x, y, width);
+	// }
 }
 
 Line_Gauge.prototype = Object.create(Special_Gauge.prototype);

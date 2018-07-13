@@ -788,7 +788,7 @@ Window_EnemyHPBars.prototype.constructor = Window_EnemyHPBars;
 Window_EnemyHPBars.prototype.initialize = function(sprites) {
 	Window_Base.prototype.initialize.call(this, 0, 0, Graphics.boxWidth, Graphics.boxHeight);
 	this.opacity = 0;
-	this._enemySprites = sprites.slice().reverse();
+	this._enemySprites = sprites;//.slice().reverse();
 };
 
 Window_EnemyHPBars.prototype.standardPadding = function() {
@@ -861,8 +861,8 @@ Window_EnemyHPBars.prototype.update = function() {
 	var enemies = $gameTroop.members();
 
 	for (var i = 0; i < enemies.length; i++) {
-		if (this._enemySprites[i] === undefined) continue;
 		if (enemies[i].isHidden()) continue;
+		if (this._enemySprites[i] === undefined) continue;
 		if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
 
 		x = enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt(enemies[i].enemy().meta.HPBarXOffset) || 0);

@@ -468,15 +468,15 @@ Window_Base.prototype.drawExpGauge = function(x, y, width, rate, c1, c2) {
 
 Window_MenuStatus.prototype.drawActorSimpleStatus = function(actor, x, y, width) {
 	if (statusXY.length === 2) {
-	    var lineHeight = this.lineHeight();
-	    var x2 = x + 180;
-	    var width2 = Math.min(200, width - 180 - this.textPadding());
-	    this.drawActorName(actor, x, y);
-	    this.drawActorLevel(actor, x, y + lineHeight * 1);
-	    this.drawActorIcons(actor, x + statusXY[0], y + lineHeight * 2 + statusXY[1]);
-	    this.drawActorClass(actor, x2, y);
-	    this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
-	    this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
+		var lineHeight = this.lineHeight();
+		var x2 = x + 180;
+		var width2 = Math.min(200, width - 180 - this.textPadding());
+		this.drawActorName(actor, x, y);
+		this.drawActorLevel(actor, x, y + lineHeight * 1);
+		this.drawActorIcons(actor, x + statusXY[0], y + lineHeight * 2 + statusXY[1]);
+		this.drawActorClass(actor, x2, y);
+		this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
+		this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
 	} else {
 		Window_Base.prototype.drawActorSimpleStatus.call(this, actor, x, y, width);
 	}
@@ -491,10 +491,10 @@ Window_MenuStatus.prototype.drawActorSimpleStatus = function(actor, x, y, width)
 // cede to Yanfly for level drawing
 if (!Imported.YEP_CoreEngine) {
 Window_MenuStatus.prototype.drawActorLevel = function(actor, x, y) {
-    this.changeTextColor(this.systemColor());
-    this.drawText(TextManager.levelA, x, y, 48);
-    this.resetTextColor();
-    this.drawText(actor.level, x + 130, y, 36, 'right');
+	this.changeTextColor(this.systemColor());
+	this.drawText(TextManager.levelA, x, y, 48);
+	this.resetTextColor();
+	this.drawText(actor.level, x + 130, y, 36, 'right');
 };
 }
 
@@ -858,19 +858,19 @@ Window_EnemyHPBars.prototype.drawTinyGauge = function(x, y, width, rate, c1, c2,
 Window_EnemyHPBars.prototype.update = function() {
 	Window_Base.prototype.update.call(this);
 	var width = EHPbarWidth, x, y;
-    var enemies = $gameTroop.members();
+	var enemies = $gameTroop.members();
 
-    for (var i = 0; i < enemies.length; i++) {
-    	if (this._enemySprites[i] === undefined) continue;
-        if (enemies[i].isHidden()) continue;
-        if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
+	for (var i = 0; i < enemies.length; i++) {
+		if (this._enemySprites[i] === undefined) continue;
+		if (enemies[i].isHidden()) continue;
+		if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
 
-        x = enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt(enemies[i].enemy().meta.HPBarXOffset) || 0);
+		x = enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt(enemies[i].enemy().meta.HPBarXOffset) || 0);
 		y = enemies[i].screenY() - this.lineHeight() + EHPYOffset + (parseInt(enemies[i].enemy().meta.HPBarYOffset) || 0);
 		if (showUpTop) y -= this._enemySprites[i].height * EHPYMultiplier;
 		this.drawEnemyGauges(enemies[i], x, y, width);
 
-    }
+	}
 }
 
 Line_Gauge.prototype = Object.create(Special_Gauge.prototype);

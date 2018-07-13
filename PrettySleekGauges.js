@@ -871,18 +871,6 @@ Window_EnemyHPBars.prototype.update = function() {
 		this.drawEnemyGauges(enemies[i], x, y, width);
 
     }
-
-	// for (var i = 0; i < $gameTroop.members().length; i++) {
-	// 	if (this._enemySprites[i] === undefined) continue;
-	// 	if (!this._enemySprites[i]._appeared) continue;
-	// 	if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
-
-	// 	x = $gameTroop._enemies[i].screenX() - (width + this.textPadding())/2 + EHPXOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarXOffset) || 0);
-	// 	y = $gameTroop._enemies[i].screenY() - this.lineHeight() + EHPYOffset + (parseInt($gameTroop._enemies[i].enemy().meta.HPBarYOffset) || 0);
-	// 	if (showUpTop) y -= this._enemySprites[i].height * EHPYMultiplier;
-
-	// 	this.drawEnemyGauges($gameTroop._enemies[i], x, y, width);
-	// }
 }
 
 Line_Gauge.prototype = Object.create(Special_Gauge.prototype);

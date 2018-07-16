@@ -399,6 +399,38 @@ var statusXY = (parameters['Status Icon XY Offset'] || "0").split(", ").map(Numb
 //=============================================================================
 // Sleek Gauges
 //=============================================================================
+Window_Base.prototype.drawStaticGauge = function(x, y, width, rate, c1, c2, type) {
+	switch (type) {
+		case "hp":
+			barTypeLeft = hpBarTypeLeft || barTypeLeft;
+			barTypeRight = hpBarTypeRight || barTypeRight;
+			break;
+		case "mp":
+			barTypeLeft = mpBarTypeLeft || barTypeLeft;
+			barTypeRight = mpBarTypeRight || barTypeRight;
+			break;
+		case "tp":
+			barTypeLeft = tpBarTypeLeft || barTypeLeft;
+			barTypeRight = tpBarTypeRight || barTypeRight;
+			break;
+		case "exp":
+			barTypeLeft = expBarTypeLeft || barTypeLeft;
+			barTypeRight = expBarTypeRight || barTypeRight;
+			break;
+	}
+
+	var height = defaultHeight;
+	var fill_w = width * rate;
+	var gy = y + this.lineHeight() - height - 1;
+
+	this.contents.drawTrap(x, gy, width - 2, height, this.gaugeBackColor(), true);
+	this.contents.drawTrap(x, gy, fill_w, height, c1, c2, "atop");
+	this.contents.drawTrap(x, gy, width - 2, height, gaugeOutColor);
+
+	barTypeLeft = saveBarTypeLeft;
+	barTypeRight = saveBarTypeRight;
+}
+
 Window_Base.prototype.drawAnimatedGauge = function(x, y, width, rate, c1, c2, type) {
 	if (this._gauges == null) this._gauges = {};
 	var gkey = this.makeGaugeKey(x, y);
@@ -442,7 +474,7 @@ Window_MenuStatus.prototype.drawActorEXP = function(actor, x, y, width) {
 	var rate = (actor.currentExp() - actor.currentLevelExp()) / (actor.nextLevelExp() - actor.currentLevelExp());
 	if (actor.level === actor.maxLevel()) rate = 1;
 
-	this.drawExpGauge(x, y, width, rate, this.textColor(0), this.textColor(8));
+	this.drawStaticGauge(x, y, width, rate, this.textColor(0), this.textColor(8), "exp");
 
 	this.changeTextColor(this.systemColor());
 	this.drawText(TextManager.expA, x, y, 44);
@@ -450,21 +482,28 @@ Window_MenuStatus.prototype.drawActorEXP = function(actor, x, y, width) {
 	this.drawText((Math.floor(rate * 10000) / 100) + "%", x, y, width,"right");
 };
 
-Window_Base.prototype.drawExpGauge = function(x, y, width, rate, c1, c2) {
-	barTypeLeft = expBarTypeLeft || barTypeLeft;
-	barTypeRight = expBarTypeRight || barTypeRight;
-	
-	var height = defaultHeight;
-	var fill_w = width * rate;
-	var gy = y + this.lineHeight() - height - 1;
-
-	this.contents.drawTrap(x, gy, width - 2, height, this.gaugeBackColor(), true);
-	this.contents.drawTrap(x, gy, fill_w, height, c1, c2, "atop");
-	this.contents.drawTrap(x, gy, width - 2, height, gaugeOutColor);
-
-	barTypeLeft = saveBarTypeLeft;
-	barTypeRight = saveBarTypeRight;
+if (Imported.YEP_PartySystem) {
+Window_PartyDetail.prototype.drawActorHp = function(actor, x, y, width) {
+    width = width || 186;
+    var color1 = this.hpGaugeColor1();
+    var color2 = this.hpGaugeColor2();
+    this.drawStaticGauge(x, y, width, actor.hpRate(), color1, color2, "hp");
+    this.changeTextColor(this.systemColor());
+    this.drawText(TextManager.hpA, x, y, 44);
+    this.drawCurrentAndMax(actor.hp, actor.mhp, x, y, width, this.hpColor(actor), this.normalColor());
 };
+
+Window_PartyDetail.prototype.drawActorMp = function(actor, x, y, width) {
+    width = width || 186;
+    var color1 = this.mpGaugeColor1();
+    var color2 = this.mpGaugeColor2();
+    this.drawStaticGauge(x, y, width, actor.mpRate(), color1, color2, "mp");
+    this.changeTextColor(this.systemColor());
+    this.drawText(TextManager.mpA, x, y, 44);
+    this.drawCurrentAndMax(actor.mp, actor.mmp, x, y, width, this.mpColor(actor), this.normalColor());
+};
+
+}
 
 Window_MenuStatus.prototype.drawActorSimpleStatus = function(actor, x, y, width) {
 	if (statusXY.length === 2) {
@@ -820,7 +859,8 @@ Window_EnemyHPBars.prototype.drawActorTp = function(actor, x, y, width) {
 
 Window_EnemyHPBars.prototype.drawEnemyGauges = function(actor, x, y, width) {
 	if (actor.enemy().meta.HideEnemyHPBar) return;
-	if (this._gauges && this._gauges[this.makeGaugeKey(x, y)] && this._gauges[this.makeGaugeKey(x, y)]._curVal === 0 && actor.hp === 0) {
+	if (this._gauges && this._gauges[this.makeGaugeKey(x, y)]
+		&& ((this._gauges[this.makeGaugeKey(x, y)]._curVal === 0 && actor.hp === 0) || actor.isHidden())) {
 		this.clearGauges(actor, x, y, width);
 		return;
 	}
@@ -861,7 +901,6 @@ Window_EnemyHPBars.prototype.update = function() {
 	var enemies = $gameTroop.members();
 
 	for (var i = 0; i < enemies.length; i++) {
-		if (enemies[i].isHidden()) continue;
 		if (this._enemySprites[i] === undefined) continue;
 		if (!this._enemySprites[i].height || !this._enemySprites[i].width) continue;
 

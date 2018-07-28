@@ -503,6 +503,17 @@ Window_PartyDetail.prototype.drawActorMp = function(actor, x, y, width) {
     this.drawCurrentAndMax(actor.mp, actor.mmp, x, y, width, this.mpColor(actor), this.normalColor());
 };
 
+Window_PartyDetail.prototype.drawActorTp = function(actor, x, y, width) {
+    width = width || 96;
+    var color1 = this.tpGaugeColor1();
+    var color2 = this.tpGaugeColor2();
+    this.drawStaticGauge(x, y, width, actor.mpRate(), color1, color2, "tp");
+    this.changeTextColor(this.systemColor());
+    this.drawText(TextManager.tpA, x, y, 44);
+    this.changeTextColor(this.tpColor(actor));
+    this.drawText(actor.tp, x + width - 64, y, 64, 'right');
+};
+
 }
 
 Window_MenuStatus.prototype.drawActorSimpleStatus = function(actor, x, y, width) {

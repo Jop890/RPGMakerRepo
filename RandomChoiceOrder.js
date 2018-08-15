@@ -3,7 +3,7 @@
 //==============================================================================
 
 /*:
-* @plugindesc 
+* @plugindesc Shows choices in a random order when specified switch is turned on.
 * @author mjshi
 *
 * @param Switch ID
